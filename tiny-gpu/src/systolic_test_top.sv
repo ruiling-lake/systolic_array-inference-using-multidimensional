@@ -26,9 +26,9 @@ module systolic_test_top #(
         $dumpvars(0, systolic_test_top);
     end
 
-    // 【修改】：删除数组端口，改为单数据流端口
-    wire [31:0] sa_north_in;
-    wire [31:0] sa_west_in;
+    // 修改为数组连线
+    wire [31:0] sa_north [0:SA_SIZE-1];
+    wire [31:0] sa_west  [0:SA_SIZE-1];
     wire sa_enable;
     wire [63:0] sa_result_flat [0:SA_SIZE*SA_SIZE-1];
 
@@ -42,9 +42,8 @@ module systolic_test_top #(
         .lsu_write_req(lsu_write_req), .lsu_write_addr(lsu_write_addr),
         .lsu_write_data(lsu_write_data), .lsu_write_ready(lsu_write_ready),
         
-        // 【修改】：连接到新的单数据流端口
-        .sa_north_in(sa_north_in), 
-        .sa_west_in(sa_west_in), 
+        .sa_north(sa_north), 
+        .sa_west(sa_west), 
         .sa_enable(sa_enable),
         .sa_result_flat(sa_result_flat)
     );
@@ -53,9 +52,8 @@ module systolic_test_top #(
         .SIZE(SA_SIZE)
     ) u_array (
         .clk(clk), .reset(reset), .enable(sa_enable),
-        // 【修改】：连接到新的单数据流端口
-        .north_in(sa_north_in), 
-        .west_in(sa_west_in), 
+        .north(sa_north), 
+        .west(sa_west), 
         .result_flat(sa_result_flat)
     );
 
