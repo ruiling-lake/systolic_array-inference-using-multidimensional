@@ -1,0 +1,2 @@
+Computation completed in 280 cycles (2810.0 ns)
+Result  0: Expected =  300, Actual = 1288658616320
