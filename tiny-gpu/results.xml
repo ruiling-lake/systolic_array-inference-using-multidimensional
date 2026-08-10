@@ -1,6 +1,0 @@
-<testsuites name="results">
-  <testsuite name="all" package="all">
-    <property name="random_seed" value="1785830780" />
-    <testcase name="test_systolic_adapter_4x4" classname="test.test_systolic_adapter" file="/home/ruiling/Desktop/tiny-gpu/test/test_systolic_adapter.py" lineno="40" time="0.10218596458435059" sim_time_ns="2871.0" ratio_time="28095.834997281843" />
-  </testsuite>
-</testsuites>
