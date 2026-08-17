@@ -1,0 +1,18 @@
+Computation completed in 284 cycles (2850.0 ns)
+Result  0: Expected =  300, Actual =  300
+Result  1: Expected =  400, Actual =  400
+Result  2: Expected =  500, Actual =  500
+Result  3: Expected =  600, Actual =  600
+Result  4: Expected =  700, Actual =  700
+Result  5: Expected =  960, Actual =  960
+Result  6: Expected = 1220, Actual = 1220
+Result  7: Expected = 1480, Actual = 1480
+Result  8: Expected = 1100, Actual = 1100
+Result  9: Expected = 1520, Actual = 1520
+Result 10: Expected = 1940, Actual = 1940
+Result 11: Expected = 2360, Actual = 2360
+Result 12: Expected = 1500, Actual = 1500
+Result 13: Expected = 2080, Actual = 2080
+Result 14: Expected = 2660, Actual = 2660
+Result 15: Expected = 3240, Actual = 3240
+4x4 Systolic Adapter test passed successfully!
