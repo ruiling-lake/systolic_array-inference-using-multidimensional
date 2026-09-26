@@ -1,0 +1,393 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Tiny-GPU GEMM / LeNet Systolic Core",
+    "locale": "zh-CN",
+    "output": "gemm-lenet.architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1500,
+      780
+    ],
+    "views": [
+      {
+        "id": "kernel-exec",
+        "label": "指令流水线",
+        "focus": [
+          "prog_mem",
+          "mem_ctrl_p",
+          "fetcher",
+          "decoder",
+          "scheduler",
+          "threads"
+        ],
+        "note": "跟踪取指、译码、调度与线程执行。"
+      },
+      {
+        "id": "gemm-path",
+        "label": "GEMM 脉动路径",
+        "focus": [
+          "data_mem",
+          "mem_ctrl_d",
+          "adapter",
+          "systolic"
+        ],
+        "note": "跟踪矩阵乘法：数据载入、适配器喂入脉动阵列并回写结果。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "host",
+      "type": "external",
+      "label": "Host / CPU",
+      "pos": [
+        20,
+        335
+      ],
+      "size": [
+        110,
+        60
+      ]
+    },
+    {
+      "id": "dcr",
+      "type": "backend",
+      "label": "Device Ctl Reg",
+      "pos": [
+        180,
+        60
+      ],
+      "size": [
+        130,
+        50
+      ],
+      "tag": "dcr.sv"
+    },
+    {
+      "id": "dispatch",
+      "type": "security",
+      "label": "Dispatcher",
+      "pos": [
+        370,
+        60
+      ],
+      "size": [
+        130,
+        50
+      ],
+      "tag": "dispatch.sv"
+    },
+    {
+      "id": "prog_mem",
+      "type": "database",
+      "label": "Program Memory",
+      "pos": [
+        180,
+        250
+      ],
+      "size": [
+        130,
+        54
+      ],
+      "tag": "8位寻址"
+    },
+    {
+      "id": "mem_ctrl_p",
+      "type": "cloud",
+      "label": "Prog Mem Ctl",
+      "pos": [
+        370,
+        250
+      ],
+      "size": [
+        130,
+        54
+      ],
+      "tag": "controller.sv"
+    },
+    {
+      "id": "fetcher",
+      "type": "backend",
+      "label": "Fetcher",
+      "pos": [
+        560,
+        250
+      ],
+      "size": [
+        130,
+        54
+      ],
+      "tag": "fetcher.sv"
+    },
+    {
+      "id": "decoder",
+      "type": "backend",
+      "label": "Decoder",
+      "pos": [
+        740,
+        250
+      ],
+      "size": [
+        120,
+        54
+      ],
+      "tag": "decoder.sv"
+    },
+    {
+      "id": "scheduler",
+      "type": "security",
+      "label": "Scheduler",
+      "pos": [
+        910,
+        250
+      ],
+      "size": [
+        130,
+        60
+      ],
+      "tag": "scheduler.sv"
+    },
+    {
+      "id": "threads",
+      "type": "backend",
+      "label": "Thread Lane ×4",
+      "pos": [
+        1100,
+        250
+      ],
+      "size": [
+        130,
+        64
+      ],
+      "tag": "SIMD"
+    },
+    {
+      "id": "data_mem",
+      "type": "database",
+      "label": "Data Memory",
+      "pos": [
+        180,
+        420
+      ],
+      "size": [
+        140,
+        54
+      ],
+      "tag": "8位寻址"
+    },
+    {
+      "id": "mem_ctrl_d",
+      "type": "cloud",
+      "label": "Data Mem Ctl",
+      "pos": [
+        1095,
+        420
+      ],
+      "size": [
+        140,
+        56
+      ],
+      "tag": "controller.sv"
+    },
+    {
+      "id": "adapter",
+      "type": "backend",
+      "label": "Systolic Adapter",
+      "pos": [
+        1090,
+        580
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "adapter.sv"
+    },
+    {
+      "id": "systolic",
+      "type": "messagebus",
+      "label": "Systolic Array",
+      "pos": [
+        1320,
+        580
+      ],
+      "size": [
+        150,
+        64
+      ],
+      "tag": "array.sv"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "GPU Compute Core",
+      "wraps": [
+        "fetcher",
+        "decoder",
+        "scheduler",
+        "threads",
+        "mem_ctrl_d",
+        "adapter",
+        "systolic"
+      ],
+      "pad": 18
+    },
+    {
+      "kind": "security-group",
+      "label": "GEMM 加速子路",
+      "wraps": [
+        "adapter",
+        "systolic"
+      ],
+      "pad": 14
+    }
+  ],
+  "connections": [
+    {
+      "id": "host-program",
+      "from": "host",
+      "to": "prog_mem",
+      "variant": "dashed"
+    },
+    {
+      "id": "host-data",
+      "from": "host",
+      "to": "data_mem",
+      "label": "加载数据",
+      "variant": "dashed"
+    },
+    {
+      "id": "host-dcr",
+      "from": "host",
+      "to": "dcr",
+      "label": "写 thread_count",
+      "variant": "dashed"
+    },
+    {
+      "id": "dcr-dispatch",
+      "from": "dcr",
+      "to": "dispatch",
+      "label": "launch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "dispatch-scheduler",
+      "from": "dispatch",
+      "to": "scheduler",
+      "label": "块分发",
+      "variant": "emphasis",
+      "via": [
+        [
+          540,
+          85
+        ],
+        [
+          540,
+          200
+        ],
+        [
+          975,
+          200
+        ],
+        [
+          975,
+          232
+        ]
+      ],
+      "fromSide": "right",
+      "toSide": "top"
+    },
+    {
+      "id": "prog-pmc",
+      "from": "prog_mem",
+      "to": "mem_ctrl_p"
+    },
+    {
+      "id": "pmc-fetcher",
+      "from": "mem_ctrl_p",
+      "to": "fetcher"
+    },
+    {
+      "id": "fetcher-decoder",
+      "from": "fetcher",
+      "to": "decoder"
+    },
+    {
+      "id": "decoder-scheduler",
+      "from": "decoder",
+      "to": "scheduler"
+    },
+    {
+      "id": "scheduler-threads",
+      "from": "scheduler",
+      "to": "threads"
+    },
+    {
+      "id": "data-dmc",
+      "from": "data_mem",
+      "to": "mem_ctrl_d",
+      "label": "读/写请求"
+    },
+    {
+      "id": "dmc-threads",
+      "from": "mem_ctrl_d",
+      "to": "threads",
+      "label": "LDR/STR 数据"
+    },
+    {
+      "id": "dmc-adapter",
+      "from": "mem_ctrl_d",
+      "to": "adapter",
+      "label": "SA 访存",
+      "variant": "dashed",
+      "labelDy": 44
+    },
+    {
+      "id": "adapter-systolic",
+      "from": "adapter",
+      "to": "systolic",
+      "label": "north/west 数据",
+      "variant": "emphasis"
+    },
+    {
+      "id": "systolic-adapter",
+      "from": "systolic",
+      "to": "adapter",
+      "label": "result",
+      "variant": "dashed",
+      "labelDy": -16
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "指令流水线",
+      "items": [
+        "Fetcher 按 PC 从程序存储器异步取指",
+        "Decoder 将 16 位指令译为控制信号",
+        "Scheduler 用 FETCH→DECODE→REQUEST→WAIT→EXECUTE→UPDATE 状态机驱动线程"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "GEMM 脉动路径",
+      "items": [
+        "Adapter 从数据存储器读入输入矩阵",
+        "以阶梯 (skew) 时序从 north/west 喂入 4×4 PE 网格",
+        "结果经 result_flat 回写数据存储器"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "SIMD 线程",
+      "items": [
+        "每个线程一条通道：ALU/LSU/寄存器堆/PC",
+        "同一指令多数据 (SIMD) 并行",
+        "LSU 访存异步，Scheduler 等待其完成"
+      ]
+    }
+  ]
+}

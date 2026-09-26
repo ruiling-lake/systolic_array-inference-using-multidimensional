@@ -1,9 +1,22 @@
-.PHONY: test compile_all test_systolic_adapter test_matadd test_matmul
+.PHONY: test compile_all test_systolic_adapter test_matadd test_matmul test_lenet show_%
 
 export LIBPYTHON_LOC=$(shell cocotb-config --libpython)
 
-# 1. 专门用于测试 systolic 的规则 (使用新的顶层模块)
-test_systolic_adapter: compile_all
+# ==========================================
+# 1. 新增：LeNet 推理测试
+# ==========================================
+test_lenet: build/sim_systolic.vvp
+	@echo "=========================================="
+	@echo "Running LeNet Inference Test (Cocotb)"
+	@echo "=========================================="
+	MODULE=test.test_lenet vvp -M $$(cocotb-config --prefix)/cocotb/libs -m libcocotbvpi_icarus build/sim_systolic.vvp
+
+# ==========================================
+# 2. 优化：提取 systolic 子系统的独立编译目标
+#    (供 test_systolic_adapter 和 test_lenet 共享，避免重复编译)
+# ==========================================
+build/sim_systolic.vvp: compile_all
+	@echo "Compiling systolic subsystem (sv2v + iverilog)..."
 	sv2v -w build/systolic_test_top_tmp.v \
 	    src/systolic_test_top.sv \
 	    src/systolic_adapter.sv \
@@ -12,21 +25,34 @@ test_systolic_adapter: compile_all
 
 	echo '`timescale 1ns/1ns' > build/systolic_test_top.v
 	cat build/systolic_test_top_tmp.v >> build/systolic_test_top.v
-	rm build/systolic_test_top_tmp.v
+	rm -f build/systolic_test_top_tmp.v
+	
 	iverilog -o build/sim_systolic.vvp -s systolic_test_top -g2012 build/systolic_test_top.v
+
+# ==========================================
+# 3. 原有的 systolic adapter 测试 (现在复用编译产物)
+# ==========================================
+test_systolic_adapter: build/sim_systolic.vvp
+	@echo "Running Systolic Adapter Test..."
 	MODULE=test.test_systolic_adapter vvp -M $$(cocotb-config --prefix)/cocotb/libs -m libcocotbvpi_icarus build/sim_systolic.vvp
 
-# 2. 原有的 matadd 测试
+# ==========================================
+# 4. 原有的 matadd 测试
+# ==========================================
 test_matadd: compile_all
 	iverilog -o build/sim.vvp -s gpu -g2012 build/gpu.v
 	MODULE=test.test_matadd vvp -M $$(cocotb-config --prefix)/cocotb/libs -m libcocotbvpi_icarus build/sim.vvp
 
-# 3. 原有的 matmul 测试
+# ==========================================
+# 5. 原有的 matmul 测试
+# ==========================================
 test_matmul: compile_all
 	iverilog -o build/sim.vvp -s gpu -g2012 build/gpu.v
 	MODULE=test.test_matmul vvp -M $$(cocotb-config --prefix)/cocotb/libs -m libcocotbvpi_icarus build/sim.vvp
 
-# 4. 统一的编译规则
+# ==========================================
+# 6. 统一的编译规则 (保持不变)
+# ==========================================
 compile_all:
 	@echo "Converting SystemVerilog to Verilog using sv2v..."
 	sv2v -w build/alu.v src/alu.sv
@@ -44,6 +70,8 @@ compile_all:
 	cat build/gpu.v >> build/temp.v
 	mv build/temp.v build/gpu.v
 
-# 5. 波形查看规则
+# ==========================================
+# 7. 波形查看规则
+# ==========================================
 show_%: %.vcd %.gtkw
 	gtkwave $^
